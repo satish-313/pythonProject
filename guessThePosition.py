@@ -1,9 +1,11 @@
 import random
+import time
 
 class coordinate():
     def __init__(self,row,col):
         self.row = row
         self.col = col
+
 
 def display(space,s):
     for i in range(len(space)):
@@ -21,19 +23,36 @@ def display(space,s):
         print(" ")
     return space
 
-def coordinateRepeatCheckcomputer(spaceUsed,row,col):
+def userInputValidate(number,diagonal):
+    while (number > diagonal or number <= 0):
+        number = int(input(f"Index is out of matrix Enter the in index between {1} and {diagonal} : "))
+    return number
+
+def coordinateCatchRepeatCheckcomputer(computerTypeCoordinate,row,col,diagonal):
+    for i in computerTypeCoordinate:
+        if(row == i.row and col == i.col):
+            rowAgain = random.randint(0,diagonal-1)
+            colAgain = random.randint(0,diagonal-1)
+            s = coordinate(rowAgain,colAgain)
+            computerTypeCoordinate,s = coordinateCatchRepeatCheckcomputer(computerTypeCoordinate,s.row,s.col,diagonal)
+            return computerTypeCoordinate,s
+    s = coordinate(row,col)
+    computerTypeCoordinate.append(s)
+    return computerTypeCoordinate,s
+
+def coordinateRepeatCheckcomputer(spaceUsed,row,col,diagonal):
     for i in spaceUsed:
         if(row == i.row and col == i.col):
-            rowAgain = random.randint(0,2)
-            colAgain = random.randint(0,2)
+            rowAgain = random.randint(0,diagonal-1)
+            colAgain = random.randint(0,diagonal-1)
             s = coordinate(rowAgain,colAgain)
-            spaceUsed,s = coordinateRepeatCheckcomputer(spaceUsed,s.row,s.col)
+            spaceUsed,s = coordinateRepeatCheckcomputer(spaceUsed,s.row,s.col,diagonal)
             return spaceUsed,s
     s = coordinate(row,col)
     spaceUsed.append(s)
     return spaceUsed,s
     
-def coordinateRepeatCheck(spaceUsed,row,col):
+def coordinateRepeatCheck(spaceUsed,row,col,diagonal):
     if (len(spaceUsed) == 0):
         s = coordinate(row,col)
         spaceUsed.append(s)
@@ -42,10 +61,10 @@ def coordinateRepeatCheck(spaceUsed,row,col):
         for i in spaceUsed:
             if(row == i.row and col == i.col):
                 print(i.row+1 ," and ",i.col+1 ," already used enter another coordinate : ")
-                rowAgain = int(input("Enter the row : "))
-                colAgain = int(input("Enter the col : "))
+                rowAgain = userInputValidate(int(input("Enter the row : ")),diagonal)
+                colAgain = userInputValidate(int(input("Enter the col : ")),diagonal)
                 s = coordinate(rowAgain-1,colAgain-1)
-                spaceUsed,s = coordinateRepeatCheck(spaceUsed,s.row,s.col)
+                spaceUsed,s = coordinateRepeatCheck(spaceUsed,s.row,s.col,diagonal)
                 return spaceUsed,s
         s = coordinate(row,col)
         spaceUsed.append(s)
@@ -55,38 +74,36 @@ def catchCoordinate(point,cc,SecretCoordinate):
     for i in SecretCoordinate:
         if cc.row == i.row and cc.col == i.col:
             print(f"You catch the point is {i.row+1} and {i.col+1}")
-            #spaceUsed.append(cc)
             point = point + 1
     return point
 
 
 def main():
     name = input("Enter the name : ")
-    #Name = name.capitalize()
     diagonalOfSpace = int(input("Enter matrix diagonal : "))
     space = [["*" for i in range(diagonalOfSpace)]for j in range(diagonalOfSpace)]
     print("The number attempt is equal to diagonal of matrix that is :",diagonalOfSpace)
     spaceUsed = []
     userSecretCoordinate = []
     computerSecretCoordinate = []
+    computerTypeCoordinate = []
     print(f"{name} Enter the point")
     while True:
         for i in range(diagonalOfSpace): # for user for input
-            row = int(input("Enter row index : "))
+            row = userInputValidate(int(input("Enter row index : ")),diagonalOfSpace)
             row = row - 1
-            col = int(input("Enter the column index : "))
+            col = userInputValidate(int(input("Enter the column index : ")),diagonalOfSpace)
             col = col - 1
-            spaceUsed,s = coordinateRepeatCheck(spaceUsed,row,col)
+            spaceUsed,s = coordinateRepeatCheck(spaceUsed,row,col,diagonalOfSpace)
             space = display(space,s)
             userSecretCoordinate.append(s)
             print("The ",(i+1)," position is filled ")
 
         print("The computer term start")
         for i in range(diagonalOfSpace): # for computer input by random
-            row = random.randint(0,2)
-            col = random.randint(0,2)
-            spaceUsed,s = coordinateRepeatCheckcomputer(spaceUsed, row,col)
-            #space = display(space,s)
+            row = random.randint(0,diagonalOfSpace-1)
+            col = random.randint(0,diagonalOfSpace-1)
+            spaceUsed,s = coordinateRepeatCheckcomputer(spaceUsed, row,col,diagonalOfSpace)
             computerSecretCoordinate.append(s)
             print("The ",(i+1)," position is filled ")
         
@@ -95,29 +112,30 @@ def main():
     print("Who guess the opponent position first will win\nENJOY!")
     userPoint = 0
     computerPoint = 0
+    computerTypeCoordinate.extend(computerSecretCoordinate)
     while True:
         print(f"-- {name.capitalize()} ENTER THE COORDINATE --")
-        row = int(input("Enter the row coordinate : "))
+        row = userInputValidate(int(input("Enter the row coordinate : ")),diagonalOfSpace)
         row = row -1
-        col = int(input("Enter the col coordinate : "))
+        col = userInputValidate(int(input("Enter the col coordinate : ")),diagonalOfSpace)
         col = col - 1
         cc = coordinate(row,col)
         userPoint = catchCoordinate(userPoint,cc,computerSecretCoordinate)
         print(f"{name} point : {userPoint}")
         space = display(space,cc)
-        if userPoint == 3:
+        if userPoint == diagonalOfSpace:
             break
 
         print("-- COMPUTER ENTER THE COORDINATE --")
-        crow = random.randint(0,2)
-        ccol = random.randint(0,2)
+        crow = random.randint(0,diagonalOfSpace-1)
+        ccol = random.randint(0,diagonalOfSpace-1)
         ccc = coordinate(crow,ccol)
-        computerSecretCoordinate,ccc = coordinateRepeatCheckcomputer(computerSecretCoordinate,ccc.row,ccc.col)
+        computerTypeCoordinate,ccc = coordinateCatchRepeatCheckcomputer(computerTypeCoordinate,ccc.row,ccc.col,diagonalOfSpace)
+    
         computerPoint= catchCoordinate(computerPoint,ccc,userSecretCoordinate)
-        #space = display(space,ccc)
         print(f"computer point : {computerPoint}")
         print("-- COMPUTER ENTERED THE COORDINATE --")
-        if computerPoint == 3:
+        if computerPoint == diagonalOfSpace:
             break
     
     if userPoint == diagonalOfSpace:
